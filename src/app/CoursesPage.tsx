@@ -4,6 +4,7 @@ import { vault } from "../data/vault";
 import { useVault } from "./useVault";
 import type { Course, GradingMode } from "../domain/types";
 import { DEFAULT_SCALE_GRADES, DEFAULT_SCALE_POINTS } from "../domain/grade";
+import { duplicateCourse } from "../data/duplicate";
 import { BackupBanner } from "./BackupBanner";
 
 export function CoursesPage() {
@@ -11,6 +12,7 @@ export function CoursesPage() {
   const [name, setName] = useState("");
   const [mode, setMode] = useState<GradingMode>("grades");
   const [query, setQuery] = useState("");
+  const [dupFor, setDupFor] = useState<Course | null>(null);
 
   const q = query.trim().toLowerCase();
   const courses = [...vault.courses.values()].sort((a, b) => a.name.localeCompare(b.name));
@@ -86,11 +88,73 @@ export function CoursesPage() {
                     {count} Schüler · {c.gradingMode === "points" ? "Punkte 0–15" : "Noten 1–6"}
                   </div>
                 </Link>
+                <button className="mt-1 text-xs text-blue-600 px-2 py-1"
+                  onClick={(e) => { e.preventDefault(); setDupFor(c); }}>
+                  Duplizieren / Schuljahr
+                </button>
               </li>
             );
           })}
         </ul>
       )}
+      {dupFor && <DuplicateDialog course={dupFor} onClose={() => setDupFor(null)} />}
+    </div>
+  );
+}
+
+// V5: Klasse duplizieren / Schuljahresübergang — Struktur (Notenbaum, Skalen,
+// Checklisten, Sitzplan) wird kopiert; Schüler an-/abwählbar; Noten und
+// Erfassungsdaten werden zurückgesetzt.
+function DuplicateDialog({ course, onClose }: { course: Course; onClose: () => void }) {
+  const year = new Date().getFullYear();
+  const [name, setName] = useState(`${course.name} ${year}/${String(year + 1).slice(2)}`);
+  const [sel, setSel] = useState<Set<string>>(new Set());
+  const students = [...vault.students.values()]
+    .filter((s) => s.courseId === course.id)
+    .sort((a, b) => a.lastName.localeCompare(b.lastName));
+  const [busy, setBusy] = useState(false);
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-20"
+      onClick={onClose}>
+      <div className="bg-white rounded-2xl p-5 w-full max-w-md space-y-4" onClick={(e) => e.stopPropagation()}>
+        <h2 className="font-semibold">{course.name} übernehmen</h2>
+        <p className="text-sm text-neutral-500">
+          Notenbaum, Skalen, Checklisten und Sitzplan werden kopiert. Noten, Vorfälle
+          und Haken werden zurückgesetzt. Schüler einzeln an-/abwählbar.
+        </p>
+        <input className="border rounded-lg px-3 py-2 min-h-11 w-full" value={name}
+          onChange={(e) => setName(e.target.value)} placeholder="Name des neuen Kurses" />
+        <div className="flex gap-2 text-sm">
+          <button className="text-blue-600 underline" onClick={() => setSel(new Set(students.map((s) => s.id)))}>alle</button>
+          <button className="text-blue-600 underline" onClick={() => setSel(new Set())}>keine</button>
+        </div>
+        <div className="max-h-56 overflow-auto border rounded-lg divide-y">
+          {students.map((s) => (
+            <label key={s.id} className="flex items-center gap-2 px-3 py-2 text-sm">
+              <input type="checkbox" checked={sel.has(s.id)}
+                onChange={(e) => {
+                  const x = new Set(sel);
+                  e.target.checked ? x.add(s.id) : x.delete(s.id);
+                  setSel(x);
+                }} />
+              {s.lastName}, {s.firstName}
+            </label>
+          ))}
+          {students.length === 0 && <p className="p-3 text-sm text-neutral-400">Keine Schüler.</p>}
+        </div>
+        <div className="flex gap-2">
+          <button className="min-h-11 px-4 rounded-lg bg-blue-600 text-white text-sm flex-1" disabled={busy}
+            onClick={async () => {
+              setBusy(true);
+              await duplicateCourse(course, { name: name.trim() || `${course.name} (Kopie)`, studentIds: [...sel] });
+              onClose();
+            }}>
+            Übernehmen ({sel.size} Schüler)
+          </button>
+          <button className="min-h-11 px-4 rounded-lg border text-sm" onClick={onClose}>Abbrechen</button>
+        </div>
+      </div>
     </div>
   );
 }

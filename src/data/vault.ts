@@ -102,7 +102,27 @@ export class Vault {
       const entity = await decryptJson<any>(this.key!, row.blob);
       this.mapFor(row.table).set(row.id, entity);
     }
+    await this.dedupeEntries();
     for (const t of ALL_TABLES) this.touch(t);
+  }
+
+  // Pre-fix builds could persist two entries for the same (student, node).
+  // Keep the newest per pair and delete the rest — also in IndexedDB.
+  private async dedupeEntries(): Promise<void> {
+    const seen = new Map<string, string>(); // pair -> winning entry id
+    const drop: string[] = [];
+    for (const e of this.entries.values()) {
+      const pair = `${e.studentId}:${e.nodeId}`;
+      const winner = seen.get(pair);
+      if (!winner) { seen.set(pair, e.id); continue; }
+      const w = this.entries.get(winner)!;
+      if (e.updatedAt >= w.updatedAt) { drop.push(w.id); seen.set(pair, e.id); }
+      else drop.push(e.id);
+    }
+    for (const id of drop) {
+      this.entries.delete(id);
+      await db.rows.delete(id);
+    }
   }
 
   private mapFor(table: TableName): Map<string, any> {
@@ -121,7 +141,8 @@ export class Vault {
 
   // Reassign a table's Map so React useMemo deps on vault.<table> re-run.
   private touch(table: TableName): void {
-    this[table] = new Map(this[table]) as never;
+    const m = this[table] as Map<string, unknown>;
+    this[table] = new Map(m) as never;
   }
 
   // ---------- writes ----------
@@ -169,6 +190,12 @@ export class Vault {
     const days = this.meta.backupReminderDays;
     if (!this.meta.lastBackupAt) return true;
     return Date.now() - this.meta.lastBackupAt > days * 86400_000;
+  }
+
+  // Eine Row entschlüsseln (Konflikt-Anzeige im Sync).
+  async decryptRow(row: { blob: string }): Promise<unknown | null> {
+    if (!this.key) return null;
+    try { return await decryptJson(this.key, row.blob); } catch { return null; }
   }
 
   // ---------- change feed ----------

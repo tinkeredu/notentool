@@ -11,15 +11,28 @@ export type EncryptedRow = {
   blob: string; // AES-GCM packed base64
 };
 
+export type SnapshotRow = {
+  id: string;
+  createdAt: number;
+  meta: VaultMeta;
+  rows: EncryptedRow[]; // already encrypted — restoring copies them back verbatim
+};
+
 class TinkerDB extends Dexie {
   rows!: Table<EncryptedRow, string>;
   meta!: Table<{ key: string; value: unknown }, string>;
+  snapshots!: Table<SnapshotRow, string>;
 
   constructor() {
     super("tinkeredu");
     this.version(1).stores({
       rows: "id, table, updatedAt",
       meta: "key",
+    });
+    this.version(2).stores({
+      rows: "id, table, updatedAt",
+      meta: "key",
+      snapshots: "id, createdAt",
     });
   }
 }

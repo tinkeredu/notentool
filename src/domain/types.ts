@@ -32,6 +32,7 @@ export type TreeNode = EntityBase & {
   kind: "category" | "assessment";
   date: string | null; // ISO date for assessments
   maxPoints: number | null; // assessments only; null = direct grade entry
+  taskMaxes?: number[] | null; // V2: mehrere Aufgaben mit Einzel-Maxima → Summe → Skala
   scaleId: string | null; // per-assessment scale override
 };
 
@@ -46,6 +47,7 @@ export type GradeEntry = EntityBase & {
   // points mode: points = 0–15.
   value: number | null;
   points: number | null;
+  taskPoints?: number[] | null; // Einzelpunkte pro Aufgabe (bei taskMaxes)
   comment: string;
 };
 
@@ -65,6 +67,7 @@ export type VaultMeta = {
   lastBackupAt: number | null;
   backupReminderDays: number;
   theme?: "light" | "dark";
+  lastSyncAt?: number | null; // V5: Basis für LWW-Konflikterkennung
 };
 
 // V4: Unterrichts-Alltag
