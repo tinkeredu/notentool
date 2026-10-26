@@ -67,4 +67,33 @@ export type VaultMeta = {
   theme?: "light" | "dark";
 };
 
-export type TableName = "courses" | "students" | "nodes" | "entries" | "scales";
+// V4: Unterrichts-Alltag
+export type Checklist = EntityBase & {
+  courseId: string;
+  name: string;
+  ticked: string[]; // studentIds
+};
+
+export type Incident = EntityBase & {
+  courseId: string;
+  studentId: string;
+  date: string; // ISO day
+  kind: "homework" | "material";
+  note: string;
+};
+
+export type SeatPlan = EntityBase & {
+  courseId: string;
+  positions: Record<string, { x: number; y: number }>; // studentId -> % coords
+};
+
+export type StudentNote = EntityBase & {
+  courseId: string;
+  studentId: string;
+  date: string; // ISO day
+  category: string; // z. B. Verhalten, Elternkontakt
+  text: string;
+};
+
+export type TableName = "courses" | "students" | "nodes" | "entries" | "scales"
+  | "checklists" | "incidents" | "seatplans" | "notes";

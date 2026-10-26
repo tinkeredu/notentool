@@ -5,7 +5,8 @@
 import { db, loadMeta, saveMeta, type EncryptedRow } from "./db";
 import { createPinKeys, unlock, encryptJson, decryptJson } from "./crypto";
 import type {
-  Course, Student, TreeNode, GradeEntry, Scale, TableName, VaultMeta,
+  Course, Student, TreeNode, GradeEntry, Scale, Checklist, Incident, SeatPlan,
+  StudentNote, TableName, VaultMeta,
 } from "../domain/types";
 
 type Listener = () => void;
@@ -22,6 +23,10 @@ export class Vault {
   nodes = new Map<string, TreeNode>();
   entries = new Map<string, GradeEntry>();
   scales = new Map<string, Scale>();
+  checklists = new Map<string, Checklist>();
+  incidents = new Map<string, Incident>();
+  seatplans = new Map<string, SeatPlan>();
+  notes = new Map<string, StudentNote>();
   private listeners = new Set<Listener>();
 
   // ---------- lifecycle ----------
@@ -66,10 +71,9 @@ export class Vault {
   lock(): void {
     this.key = null;
     this.courses.clear(); this.students.clear(); this.nodes.clear();
-    this.entries.clear(); this.scales.clear();
-    for (const t of ["courses", "students", "nodes", "entries", "scales"] as const) {
-      this.touch(t);
-    }
+    this.entries.clear(); this.scales.clear(); this.checklists.clear();
+    this.incidents.clear(); this.seatplans.clear(); this.notes.clear();
+    for (const t of ALL_TABLES) this.touch(t);
     this.emit();
   }
 
@@ -98,9 +102,7 @@ export class Vault {
       const entity = await decryptJson<any>(this.key!, row.blob);
       this.mapFor(row.table).set(row.id, entity);
     }
-    for (const t of ["courses", "students", "nodes", "entries", "scales"] as const) {
-      this.touch(t);
-    }
+    for (const t of ALL_TABLES) this.touch(t);
   }
 
   private mapFor(table: TableName): Map<string, any> {
@@ -110,6 +112,10 @@ export class Vault {
       case "nodes": return this.nodes;
       case "entries": return this.entries;
       case "scales": return this.scales;
+      case "checklists": return this.checklists;
+      case "incidents": return this.incidents;
+      case "seatplans": return this.seatplans;
+      case "notes": return this.notes;
     }
   }
 
@@ -185,7 +191,8 @@ export class Vault {
   async importRows(rows: EncryptedRow[]): Promise<void> {
     await db.rows.bulkPut(rows);
     this.courses.clear(); this.students.clear(); this.nodes.clear();
-    this.entries.clear(); this.scales.clear();
+    this.entries.clear(); this.scales.clear(); this.checklists.clear();
+    this.incidents.clear(); this.seatplans.clear(); this.notes.clear();
     await this.loadAll();
     this.emit();
   }
@@ -195,5 +202,10 @@ export class Vault {
     await saveMeta(meta);
   }
 }
+
+export const ALL_TABLES: TableName[] = [
+  "courses", "students", "nodes", "entries", "scales",
+  "checklists", "incidents", "seatplans", "notes",
+];
 
 export const vault = new Vault();
