@@ -141,7 +141,8 @@ export class Vault {
 
   // Reassign a table's Map so React useMemo deps on vault.<table> re-run.
   private touch(table: TableName): void {
-    this[table] = new Map(this[table]) as never;
+    const m = this[table] as Map<string, unknown>;
+    this[table] = new Map(m) as never;
   }
 
   // ---------- writes ----------
