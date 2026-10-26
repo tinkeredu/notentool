@@ -205,7 +205,7 @@ function Cell({ course, student, node, entry }: {
       return;
     }
     const allEmpty = vals.every((v) => v === null);
-    const sum = vals.reduce((a, v) => a + (v ?? 0), 0);
+    const sum = vals.reduce<number>((a, v) => a + (v ?? 0), 0);
     const totalMax = tasks.reduce((a, b) => a + b, 0);
     const scaleId = node.scaleId ?? course.scaleId;
     const scale = scaleId ? vault.scales.get(scaleId) : null;

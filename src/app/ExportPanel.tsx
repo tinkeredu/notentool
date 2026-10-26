@@ -12,10 +12,6 @@ import type { Course } from "../domain/types";
 export function ExportPanel({ course }: { course: Course }) {
   useVault();
   const [allCourses, setAllCourses] = useState(false);
-  const courses = useMemo(
-    () => (allCourses ? [...vault.courses.values()] : [course]),
-    [allCourses, course.id, vault.courses],
-  );
   const [selCourses, setSelCourses] = useState<Set<string>>(new Set([course.id]));
   const [selNodes, setSelNodes] = useState<Set<string> | null>(null); // null = all
   const [selStudents, setSelStudents] = useState<Set<string> | null>(null);

@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
 import { vault } from "../data/vault";
 import { useVault } from "./useVault";
-import { displayAverage, distribution, nodeValue, weightedAverage } from "../domain/calc";
+import { distribution, nodeValue, weightedAverage } from "../domain/calc";
 import { formatGrade, parseGrade } from "../domain/grade";
-import type { Course, GradeEntry, TreeNode } from "../domain/types";
+import type { Course, TreeNode } from "../domain/types";
 
 // V3 Analyse: Leistungsverlauf (Notenkurve), Was-wäre-wenn-Rechner,
 // Kursstatistik und Histogramm pro Arbeit.

@@ -1,8 +1,8 @@
 import { useMemo, useRef, useState } from "react";
 import { vault } from "../data/vault";
 import { useVault } from "./useVault";
-import { formatGrade, parseGrade } from "../domain/grade";
-import type { Course, Student, TreeNode } from "../domain/types";
+import { parseGrade } from "../domain/grade";
+import type { Course, Student } from "../domain/types";
 
 // V4 Unterrichts-Alltag: Checklisten, vergessene Hausaufgaben/Material,
 // Sitzplan mit Schnellerfassung, Zufallsauswahl, Bemerkungen.
@@ -72,10 +72,6 @@ function QuickGrade({ course, student, onDone }: {
 export function EverydayPanel({ course }: { course: Course }) {
   useVault();
   const students = useMemo(() => sortStudents(course.id), [course.id, vault.students]);
-  const nodes = useMemo(
-    () => [...vault.nodes.values()].filter((n) => n.courseId === course.id),
-    [course.id, vault.nodes],
-  );
 
   // ---------- Checklisten ----------
   const [listName, setListName] = useState("");

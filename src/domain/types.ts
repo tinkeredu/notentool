@@ -47,7 +47,7 @@ export type GradeEntry = EntityBase & {
   // points mode: points = 0–15.
   value: number | null;
   points: number | null;
-  taskPoints?: number[] | null; // Einzelpunkte pro Aufgabe (bei taskMaxes)
+  taskPoints?: (number | null)[] | null; // Einzelpunkte pro Aufgabe (bei taskMaxes)
   comment: string;
 };
 
