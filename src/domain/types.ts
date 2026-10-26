@@ -65,6 +65,7 @@ export type VaultMeta = {
   lastBackupAt: number | null;
   backupReminderDays: number;
   theme?: "light" | "dark";
+  lastSyncAt?: number | null; // V5: Basis für LWW-Konflikterkennung
 };
 
 // V4: Unterrichts-Alltag

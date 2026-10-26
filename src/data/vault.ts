@@ -171,6 +171,12 @@ export class Vault {
     return Date.now() - this.meta.lastBackupAt > days * 86400_000;
   }
 
+  // Eine Row entschlüsseln (Konflikt-Anzeige im Sync).
+  async decryptRow(row: { blob: string }): Promise<unknown | null> {
+    if (!this.key) return null;
+    try { return await decryptJson(this.key, row.blob); } catch { return null; }
+  }
+
   // ---------- change feed ----------
 
   subscribe(fn: Listener): () => void {
