@@ -38,7 +38,7 @@ export function CoursePage() {
       <div className="flex gap-1 border-b">
         {TABS.map((t) => (
           <NavLink
-            key={t.to} to={t.to} end={t.to === "raster"}
+            key={t.to} to={`/course/${course.id}/${t.to}`} end={t.to === "raster"}
             className={({ isActive }) =>
               `px-4 py-2.5 min-h-11 text-sm rounded-t-lg ${
                 isActive ? "bg-white border border-b-0 font-medium" : "text-neutral-500"
