@@ -10,8 +10,18 @@ export function CoursesPage() {
   useVault();
   const [name, setName] = useState("");
   const [mode, setMode] = useState<GradingMode>("grades");
+  const [query, setQuery] = useState("");
 
+  const q = query.trim().toLowerCase();
   const courses = [...vault.courses.values()].sort((a, b) => a.name.localeCompare(b.name));
+  const filtered = q
+    ? courses.filter((c) => {
+        if (c.name.toLowerCase().includes(q)) return true;
+        return [...vault.students.values()].some(
+          (s) => s.courseId === c.id && `${s.firstName} ${s.lastName}`.toLowerCase().includes(q),
+        );
+      })
+    : courses;
 
   const addCourse = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,8 +42,13 @@ export function CoursesPage() {
   return (
     <div className="space-y-6">
       <BackupBanner />
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <h1 className="text-xl font-semibold">Kurse</h1>
+        <input
+          className="border rounded-lg px-3 py-2 min-h-11 w-56"
+          placeholder="Suche (Kurs oder Schüler)…"
+          value={query} onChange={(e) => setQuery(e.target.value)}
+        />
       </div>
       <form onSubmit={addCourse} className="flex flex-wrap gap-2">
         <input
@@ -54,9 +69,11 @@ export function CoursesPage() {
       </form>
       {courses.length === 0 ? (
         <p className="text-neutral-500">Noch keine Kurse. Lege oben deinen ersten Kurs an.</p>
+      ) : filtered.length === 0 ? (
+        <p className="text-neutral-500">Keine Treffer für „{query}".</p>
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2">
-          {courses.map((c) => {
+          {filtered.map((c) => {
             const count = [...vault.students.values()].filter((s) => s.courseId === c.id).length;
             return (
               <li key={c.id}>

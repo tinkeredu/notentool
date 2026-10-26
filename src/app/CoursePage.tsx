@@ -6,12 +6,18 @@ import { StudentsPanel } from "./StudentsPanel";
 import { TreePanel } from "./TreePanel";
 import { GridPanel } from "./GridPanel";
 import { EvalPanel } from "./EvalPanel";
+import { ScalePanel } from "./ScalePanel";
+import { ExportPanel } from "./ExportPanel";
+import { PrintPanel } from "./PrintPanel";
 
 const TABS = [
   { to: "raster", label: "Erfassung" },
   { to: "schueler", label: "Schüler" },
   { to: "baum", label: "Notenbaum" },
+  { to: "skala", label: "Skala" },
   { to: "auswertung", label: "Auswertung" },
+  { to: "export", label: "Export" },
+  { to: "druck", label: "Druck" },
 ];
 
 export function CoursePage() {
@@ -48,7 +54,10 @@ export function CoursePage() {
         <Route path="raster" element={<GridPanel course={course} />} />
         <Route path="schueler" element={<StudentsPanel course={course} />} />
         <Route path="baum" element={<TreePanel course={course} />} />
+        <Route path="skala" element={<ScalePanel course={course} />} />
         <Route path="auswertung" element={<EvalPanel course={course} />} />
+        <Route path="export" element={<ExportPanel course={course} />} />
+        <Route path="druck" element={<PrintPanel course={course} />} />
       </Routes>
     </div>
   );

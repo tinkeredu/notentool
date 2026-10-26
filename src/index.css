@@ -10,3 +10,26 @@ body {
 input, button, select, textarea {
   font: inherit;
 }
+
+/* Dark mode — generic overrides for the light palette */
+.dark body { background: #171717; color: #f5f5f5; }
+.dark .bg-white { background-color: #262626; }
+.dark .bg-neutral-50 { background-color: #171717; }
+.dark .bg-neutral-100 { background-color: #404040; }
+.dark .bg-amber-50 { background-color: #451a03; }
+.dark .bg-blue-50 { background-color: #1e3a8a; }
+.dark .text-neutral-500, .dark .text-neutral-400 { color: #a3a3a3; }
+.dark .text-neutral-600 { color: #d4d4d4; }
+.dark .border, .dark .border-b, .dark .divide-y > * + * { border-color: #404040; }
+.dark input:not([type="checkbox"]):not([type="file"]), .dark select, .dark textarea {
+  background: #1f1f1f; color: #f5f5f5; border-color: #525252;
+}
+.dark .border-blue-200 { border-color: #1e3a8a; }
+.dark .border-amber-300 { border-color: #92400e; }
+
+/* Print: only the print area */
+@media print {
+  .print\:hidden, nav, .no-print { display: none !important; }
+  body { background: white; }
+  .print-area { border: none !important; }
+}
