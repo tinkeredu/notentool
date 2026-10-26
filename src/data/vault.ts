@@ -102,7 +102,27 @@ export class Vault {
       const entity = await decryptJson<any>(this.key!, row.blob);
       this.mapFor(row.table).set(row.id, entity);
     }
+    await this.dedupeEntries();
     for (const t of ALL_TABLES) this.touch(t);
+  }
+
+  // Pre-fix builds could persist two entries for the same (student, node).
+  // Keep the newest per pair and delete the rest — also in IndexedDB.
+  private async dedupeEntries(): Promise<void> {
+    const seen = new Map<string, string>(); // pair -> winning entry id
+    const drop: string[] = [];
+    for (const e of this.entries.values()) {
+      const pair = `${e.studentId}:${e.nodeId}`;
+      const winner = seen.get(pair);
+      if (!winner) { seen.set(pair, e.id); continue; }
+      const w = this.entries.get(winner)!;
+      if (e.updatedAt >= w.updatedAt) { drop.push(w.id); seen.set(pair, e.id); }
+      else drop.push(e.id);
+    }
+    for (const id of drop) {
+      this.entries.delete(id);
+      await db.rows.delete(id);
+    }
   }
 
   private mapFor(table: TableName): Map<string, any> {
