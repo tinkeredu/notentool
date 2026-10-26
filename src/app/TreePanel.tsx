@@ -37,6 +37,7 @@ function AddNode({ course, parentId }: { course: Course; parentId: string | null
   const [kind, setKind] = useState<TreeNode["kind"]>("category");
   const [weight, setWeight] = useState("1");
   const [maxPoints, setMaxPoints] = useState("");
+  const [date, setDate] = useState("");
 
   if (!open) {
     return (
@@ -53,7 +54,7 @@ function AddNode({ course, parentId }: { course: Course; parentId: string | null
         await vault.put("nodes", {
           id: crypto.randomUUID(), courseId: course.id, parentId,
           name: name.trim(), kind, weight: Number(weight.replace(",", ".")) || 1,
-          date: null,
+          date: kind === "assessment" && date ? date : null,
           maxPoints: kind === "assessment" && maxPoints ? Number(maxPoints) : null,
           scaleId: null, updatedAt: 0, updatedBy: "",
         });
@@ -69,8 +70,12 @@ function AddNode({ course, parentId }: { course: Course; parentId: string | null
       <input className="border rounded-lg px-2 py-2 min-h-11 w-20" placeholder="Gewicht"
         inputMode="decimal" value={weight} onChange={(e) => setWeight(e.target.value)} />
       {kind === "assessment" && (
-        <input className="border rounded-lg px-2 py-2 min-h-11 w-28" placeholder="Max. Punkte"
-          inputMode="decimal" value={maxPoints} onChange={(e) => setMaxPoints(e.target.value)} />
+        <>
+          <input className="border rounded-lg px-2 py-2 min-h-11 w-28" placeholder="Max. Punkte"
+            inputMode="decimal" value={maxPoints} onChange={(e) => setMaxPoints(e.target.value)} />
+          <input className="border rounded-lg px-2 py-2 min-h-11" type="date" title="Datum der Arbeit"
+            value={date} onChange={(e) => setDate(e.target.value)} />
+        </>
       )}
       <button className="min-h-11 px-4 rounded-lg bg-blue-600 text-white text-sm">OK</button>
       <button type="button" className="min-h-11 px-3 rounded-lg border text-sm"
@@ -89,6 +94,12 @@ function NodeRow({ node, course }: { node: TreeNode; course: Course }) {
         <span className="text-xs text-neutral-400">
           {node.kind === "category" ? "Kategorie" : `Arbeit${node.maxPoints ? ` · max ${node.maxPoints} P.` : ""}`}
         </span>
+        {node.kind === "assessment" && (
+          <input type="date" className="border rounded px-2 py-1 text-sm" title="Datum"
+            value={node.date ?? ""}
+            onChange={async (e) =>
+              await vault.put("nodes", { ...node, date: e.target.value || null })} />
+        )}
         <label className="text-xs text-neutral-500 flex items-center gap-1 ml-auto">
           Gewicht
           <input className="border rounded px-2 py-1 w-16 text-sm" inputMode="decimal"
