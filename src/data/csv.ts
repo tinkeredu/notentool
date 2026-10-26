@@ -23,3 +23,10 @@ export function parseCsv(text: string): CsvResult {
   }
   return { rows, errors };
 }
+
+// CSV export: semicolon, UTF-8 with BOM for Excel, quoted fields.
+export function toCsv(header: string[], rows: string[][]): string {
+  const q = (v: string) => `"${v.replace(/"/g, '""')}"`;
+  const lines = [header.map(q).join(";"), ...rows.map((r) => r.map(q).join(";"))];
+  return "﻿" + lines.join("\r\n");
+}

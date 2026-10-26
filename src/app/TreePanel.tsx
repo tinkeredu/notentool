@@ -100,6 +100,25 @@ function NodeRow({ node, course }: { node: TreeNode; course: Course }) {
                 await vault.put("nodes", { ...node, weight: w });
             }} />
         </label>
+        {node.kind === "assessment" && (
+          <button className="text-xs text-blue-600 px-2 py-1"
+            onClick={async () => {
+              if (node.scaleId) {
+                await vault.put("nodes", { ...node, scaleId: null });
+              } else if (course.scaleId) {
+                const base = vault.scales.get(course.scaleId);
+                if (!base) return;
+                const copy = await vault.put("scales", {
+                  ...base, id: crypto.randomUUID(), name: `Skala ${node.name}`,
+                  thresholds: base.thresholds.map((t) => ({ ...t })),
+                  updatedAt: 0, updatedBy: "",
+                });
+                await vault.put("nodes", { ...node, scaleId: copy.id });
+              }
+            }}>
+            {node.scaleId ? "Kursskala nutzen" : "Eigene Skala"}
+          </button>
+        )}
         <button className="text-xs text-red-600 px-2 py-1"
           onClick={async () => {
             if (!confirm(`„${node.name}" inkl. aller Untereinträge und Noten löschen?`)) return;

@@ -48,6 +48,7 @@ export class Vault {
       backupReminderDays: 7,
     };
     await saveMeta(this.meta);
+    this.emit();
   }
 
   async unlock(pin: string): Promise<boolean> {
@@ -66,6 +67,9 @@ export class Vault {
     this.key = null;
     this.courses.clear(); this.students.clear(); this.nodes.clear();
     this.entries.clear(); this.scales.clear();
+    for (const t of ["courses", "students", "nodes", "entries", "scales"] as const) {
+      this.touch(t);
+    }
     this.emit();
   }
 
@@ -94,6 +98,9 @@ export class Vault {
       const entity = await decryptJson<any>(this.key!, row.blob);
       this.mapFor(row.table).set(row.id, entity);
     }
+    for (const t of ["courses", "students", "nodes", "entries", "scales"] as const) {
+      this.touch(t);
+    }
   }
 
   private mapFor(table: TableName): Map<string, any> {
@@ -104,6 +111,11 @@ export class Vault {
       case "entries": return this.entries;
       case "scales": return this.scales;
     }
+  }
+
+  // Reassign a table's Map so React useMemo deps on vault.<table> re-run.
+  private touch(table: TableName): void {
+    this[table] = new Map(this[table]) as never;
   }
 
   // ---------- writes ----------
@@ -121,6 +133,7 @@ export class Vault {
       updatedBy: stamped.updatedBy, blob,
     });
     this.mapFor(table).set(stamped.id, stamped);
+    this.touch(table);
     this.emit();
     return stamped;
   }
@@ -134,6 +147,7 @@ export class Vault {
   async remove(table: TableName, id: string): Promise<void> {
     await db.rows.delete(id);
     this.mapFor(table).delete(id);
+    this.touch(table);
     this.emit();
   }
 

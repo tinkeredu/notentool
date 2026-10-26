@@ -64,6 +64,7 @@ export type VaultMeta = {
   pinIterations: number;
   lastBackupAt: number | null;
   backupReminderDays: number;
+  theme?: "light" | "dark";
 };
 
 export type TableName = "courses" | "students" | "nodes" | "entries" | "scales";

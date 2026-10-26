@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { Link } from "react-router-dom";
 import { vault } from "../data/vault";
 import { useVault } from "./useVault";
 import { displayAverage, distribution } from "../domain/calc";
@@ -37,6 +38,7 @@ export function EvalPanel({ course }: { course: Course }) {
                 <th className="border p-2 text-left text-sm bg-neutral-100">Schüler</th>
                 <th className="border p-2 text-sm bg-neutral-100">Ø</th>
                 <th className="border p-2 text-sm bg-neutral-100">Vorschlag</th>
+                <th className="border p-2 text-sm bg-neutral-100"></th>
               </tr>
             </thead>
             <tbody>
@@ -52,6 +54,13 @@ export function EvalPanel({ course }: { course: Course }) {
                       {avg === null ? "—" : course.gradingMode === "points"
                         ? `${avg.toFixed(1)}`
                         : formatGrade(avg)}
+                    </td>
+                    <td className="border p-2 text-sm text-center">
+                      <Link to={`/course/${course.id}/besprechung/${s.id}`}
+                        className="text-blue-600"
+                        title="Besprechungsmodus — nur diese Schülerin/dieser Schüler">
+                        Besprechung
+                      </Link>
                     </td>
                   </tr>
                 );

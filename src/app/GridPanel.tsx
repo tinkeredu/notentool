@@ -134,9 +134,13 @@ function Cell({ course, student, node, entry }: {
     : "");
 
   const save = async (patch: Partial<GradeEntry>, _label?: string) => {
-    const prev = entry;
+    // Always look the entry up in the vault: the `entry` prop can be stale,
+    // and a second entry for the same (student, node) must never be created.
+    const prev = entry ?? [...vault.entries.values()].find(
+      (e) => e.courseId === course.id && e.studentId === student.id && e.nodeId === node.id,
+    );
     const next: GradeEntry = {
-      id: prev?.id ?? crypto.randomUUID(),
+      id: prev?.id ?? `${course.id}:${student.id}:${node.id}`,
       courseId: course.id, studentId: student.id, nodeId: node.id,
       status: "graded", value: null, points: null, comment: comment,
       ...prev, ...patch, updatedAt: 0, updatedBy: "",
