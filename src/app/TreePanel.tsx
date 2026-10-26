@@ -37,6 +37,7 @@ function AddNode({ course, parentId }: { course: Course; parentId: string | null
   const [kind, setKind] = useState<TreeNode["kind"]>("category");
   const [weight, setWeight] = useState("1");
   const [maxPoints, setMaxPoints] = useState("");
+  const [tasks, setTasks] = useState("");
   const [date, setDate] = useState("");
 
   if (!open) {
@@ -56,6 +57,9 @@ function AddNode({ course, parentId }: { course: Course; parentId: string | null
           name: name.trim(), kind, weight: Number(weight.replace(",", ".")) || 1,
           date: kind === "assessment" && date ? date : null,
           maxPoints: kind === "assessment" && maxPoints ? Number(maxPoints) : null,
+          taskMaxes: kind === "assessment" && tasks.trim()
+            ? tasks.split(",").map((t) => Number(t.trim())).filter((n) => Number.isFinite(n) && n > 0)
+            : null,
           scaleId: null, updatedAt: 0, updatedBy: "",
         });
         setName(""); setOpen(false);
@@ -75,6 +79,9 @@ function AddNode({ course, parentId }: { course: Course; parentId: string | null
             inputMode="decimal" value={maxPoints} onChange={(e) => setMaxPoints(e.target.value)} />
           <input className="border rounded-lg px-2 py-2 min-h-11" type="date" title="Datum der Arbeit"
             value={date} onChange={(e) => setDate(e.target.value)} />
+          <input className="border rounded-lg px-2 py-2 min-h-11 w-40"
+            placeholder="Aufgaben: 20,30,50" title="Max-Punkte pro Aufgabe, komma-getrennt (optional)"
+            value={tasks} onChange={(e) => setTasks(e.target.value)} />
         </>
       )}
       <button className="min-h-11 px-4 rounded-lg bg-blue-600 text-white text-sm">OK</button>

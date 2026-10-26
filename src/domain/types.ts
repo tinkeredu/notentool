@@ -32,6 +32,7 @@ export type TreeNode = EntityBase & {
   kind: "category" | "assessment";
   date: string | null; // ISO date for assessments
   maxPoints: number | null; // assessments only; null = direct grade entry
+  taskMaxes?: number[] | null; // V2: mehrere Aufgaben mit Einzel-Maxima → Summe → Skala
   scaleId: string | null; // per-assessment scale override
 };
 
@@ -46,6 +47,7 @@ export type GradeEntry = EntityBase & {
   // points mode: points = 0–15.
   value: number | null;
   points: number | null;
+  taskPoints?: number[] | null; // Einzelpunkte pro Aufgabe (bei taskMaxes)
   comment: string;
 };
 
@@ -65,6 +67,36 @@ export type VaultMeta = {
   lastBackupAt: number | null;
   backupReminderDays: number;
   theme?: "light" | "dark";
+  lastSyncAt?: number | null; // V5: Basis für LWW-Konflikterkennung
 };
 
-export type TableName = "courses" | "students" | "nodes" | "entries" | "scales";
+// V4: Unterrichts-Alltag
+export type Checklist = EntityBase & {
+  courseId: string;
+  name: string;
+  ticked: string[]; // studentIds
+};
+
+export type Incident = EntityBase & {
+  courseId: string;
+  studentId: string;
+  date: string; // ISO day
+  kind: "homework" | "material";
+  note: string;
+};
+
+export type SeatPlan = EntityBase & {
+  courseId: string;
+  positions: Record<string, { x: number; y: number }>; // studentId -> % coords
+};
+
+export type StudentNote = EntityBase & {
+  courseId: string;
+  studentId: string;
+  date: string; // ISO day
+  category: string; // z. B. Verhalten, Elternkontakt
+  text: string;
+};
+
+export type TableName = "courses" | "students" | "nodes" | "entries" | "scales"
+  | "checklists" | "incidents" | "seatplans" | "notes";

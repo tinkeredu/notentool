@@ -104,9 +104,12 @@ export function AnalysisPanel({ course }: { course: Course }) {
       const needed = den === 0 || !r.weight ? null
         : (target * den - otherSum) / r.weight;
       const range = course.gradingMode === "points" ? [0, 15] : [1, 6];
+      // Kategorie ist bereits besser/gleich dem Ziel → "erreicht", auch wenn
+      // needed rechnerisch außerhalb des Bereichs liegt.
+      const reached = cur !== null && (course.gradingMode === "points" ? cur >= target : cur <= target);
       const possible = needed === null ? null
-        : needed >= range[0] && needed <= range[1];
-      return { node: r, cur, needed, possible };
+        : reached ? true : needed >= range[0] && needed <= range[1];
+      return { node: r, cur, needed, possible, reached };
     });
   }, [student?.id, target, entries, byParent, course.gradingMode]);
 
@@ -209,7 +212,7 @@ export function AnalysisPanel({ course }: { course: Course }) {
                     <th className="border p-2 text-left text-sm bg-neutral-100">Bewertung</th>
                   </tr></thead>
                   <tbody>
-                    {www.map(({ node, cur, needed, possible }) => (
+                    {www.map(({ node, cur, needed, possible, reached }) => (
                       <tr key={node.id}>
                         <td className="border p-2 text-sm">{node.name} <span className="text-neutral-400">(×{node.weight})</span></td>
                         <td className="border p-2 text-sm text-center">{cur === null ? "—" : fmt(cur)}</td>
@@ -217,10 +220,10 @@ export function AnalysisPanel({ course }: { course: Course }) {
                           {needed === null ? "—" : fmt(needed)}
                         </td>
                         <td className="border p-2 text-sm">
-                          {possible === null ? "—"
-                            : possible ? (cur !== null && (course.gradingMode === "points" ? cur >= target : cur <= target)
-                              ? "erreicht" : "erreichbar")
-                              : "nicht mehr erreichbar"}
+                          {reached ? "erreicht"
+                            : possible === null ? "—"
+                            : possible ? "erreichbar"
+                            : "nicht mehr erreichbar"}
                         </td>
                       </tr>
                     ))}

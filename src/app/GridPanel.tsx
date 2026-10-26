@@ -127,6 +127,8 @@ function Cell({ course, student, node, entry }: {
   const [showComment, setShowComment] = useState(!!entry?.comment);
 
   const status = entry?.status ?? null;
+  const tasks = node.taskMaxes && node.taskMaxes.length > 1 ? node.taskMaxes : null;
+  const [taskText, setTaskText] = useState<string[] | null>(null);
   const displayText = text ?? (entry
     ? entry.status === "excused" ? "e" : entry.status === "unexcused" ? "u"
       : course.gradingMode === "points" ? String(entry.points ?? "")
@@ -192,9 +194,64 @@ function Cell({ course, student, node, entry }: {
     setInvalid(false);
   };
 
+  const commitTasks = async () => {
+    if (!taskText || !tasks) return;
+    const vals = tasks.map((_, i) => {
+      const t = (taskText[i] ?? "").trim().replace(",", ".");
+      return t === "" ? null : Number(t);
+    });
+    if (vals.some((v, i) => v !== null && (!Number.isFinite(v) || v < 0 || v > tasks[i]))) {
+      setInvalid(true);
+      return;
+    }
+    const allEmpty = vals.every((v) => v === null);
+    const sum = vals.reduce((a, v) => a + (v ?? 0), 0);
+    const totalMax = tasks.reduce((a, b) => a + b, 0);
+    const scaleId = node.scaleId ?? course.scaleId;
+    const scale = scaleId ? vault.scales.get(scaleId) : null;
+    const pct = (sum / totalMax) * 100;
+    const g = scale ? applyScale(pct, scale.thresholds) : null;
+    if (allEmpty) {
+      await save({ status: "excused", value: null, points: null, taskPoints: null }, "leer");
+    } else if (course.gradingMode === "points") {
+      await save({ status: "graded", points: g, value: null, taskPoints: vals }, `Σ${sum} → ${g ?? "?"} P.`);
+    } else {
+      await save({ status: "graded", value: g, points: null, taskPoints: vals }, `Σ${sum} → ${g ? formatGrade(g) : "?"}`);
+    }
+    setTaskText(null);
+    setInvalid(false);
+  };
+
   const border = status === "unexcused" ? "border-red-300" : status === "excused" ? "border-amber-300" : "";
   return (
     <td className={`border p-1 align-top ${border}`}>
+      {tasks ? (
+        <div className="flex flex-col gap-0.5">
+          {tasks.map((m, i) => (
+            <div key={i} className="flex items-center gap-1">
+              <input
+                className={`w-14 min-h-9 text-center text-xs rounded border ${invalid ? "outline outline-2 outline-red-500" : ""}`}
+                inputMode="decimal"
+                placeholder={`A${i + 1}`}
+                value={taskText?.[i] ?? String(entry?.taskPoints?.[i] ?? "")}
+                onChange={(e) => {
+                  const t = [...(taskText ?? tasks.map((_, j) => String(entry?.taskPoints?.[j] ?? "")))];
+                  t[i] = e.target.value;
+                  setTaskText(t);
+                }}
+                onBlur={commitTasks}
+                onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
+              />
+              <span className="text-xs text-neutral-400">/{m}</span>
+            </div>
+          ))}
+          <span className="text-xs text-center font-medium">
+            {entry?.status === "graded"
+              ? (course.gradingMode === "points" ? `${entry.points ?? "?"} P.` : entry.value !== null ? formatGrade(entry.value) : "—")
+              : ""}
+          </span>
+        </div>
+      ) : (
       <input
         className={`w-20 min-h-11 text-center text-sm rounded ${invalid ? "outline outline-2 outline-red-500 bg-red-50" : ""}`}
         value={displayText}
@@ -205,6 +262,7 @@ function Cell({ course, student, node, entry }: {
         onBlur={commitText}
         onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
       />
+      )}
       <div className="flex gap-1 justify-center mt-0.5">
         <button
           className={`text-xs px-1.5 rounded ${status === "excused" ? "bg-amber-200" : "text-neutral-400"}`}

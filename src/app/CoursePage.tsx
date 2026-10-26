@@ -10,6 +10,7 @@ import { ScalePanel } from "./ScalePanel";
 import { ExportPanel } from "./ExportPanel";
 import { PrintPanel } from "./PrintPanel";
 import { AnalysisPanel } from "./AnalysisPanel";
+import { EverydayPanel } from "./EverydayPanel";
 
 const TABS = [
   { to: "raster", label: "Erfassung" },
@@ -18,6 +19,7 @@ const TABS = [
   { to: "skala", label: "Skala" },
   { to: "auswertung", label: "Auswertung" },
   { to: "analyse", label: "Analyse" },
+  { to: "alltag", label: "Alltag" },
   { to: "export", label: "Export" },
   { to: "druck", label: "Druck" },
 ];
@@ -59,6 +61,7 @@ export function CoursePage() {
         <Route path="skala" element={<ScalePanel course={course} />} />
         <Route path="auswertung" element={<EvalPanel course={course} />} />
         <Route path="analyse" element={<AnalysisPanel course={course} />} />
+        <Route path="alltag" element={<EverydayPanel course={course} />} />
         <Route path="export" element={<ExportPanel course={course} />} />
         <Route path="druck" element={<PrintPanel course={course} />} />
       </Routes>
